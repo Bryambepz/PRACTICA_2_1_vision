@@ -34,25 +34,43 @@ Mat imgConcatenadas;
 Mat imgGrayClahe;
 Mat imgMovimientoClahe;
 Mat imgRestaClahe;
+Mat imgGray;
+Mat restaBlanco;
+string S_fps;
 int fps = 0;
+int area = 0;
+Mat detectarZonas(Mat img, int *area){
+    Mat zonas = Mat::zeros(img.size(), CV_8UC1);
+    int pixel = 0;
+    *(area) = 0;
+    for(int i=0;i<img.rows;i++){
+        for(int j=0;j<img.cols;j++){
+            pixel = img.at<uchar>(i,j);
+            if(pixel>0){
+                zonas.at<uchar>(i,j) = 255;
+                *(area) = *(area)+1;
+            }
+        }
+    }
+    return zonas;
+}
+
 int main()
 {
 
     auto t_init = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
-    Mat imgGray;
-    string S_fps;
     VideoCapture video(0);
 
     if (video.isOpened())
     {
         Mat imgMovimiento;
         Ptr<CLAHE> clahe = createCLAHE();
-        
+
         namedWindow("videos", WINDOW_AUTOSIZE);
 
         while (3 == 3)
         {
-            if(fps==0){                
+            if(fps==0){
                 t_init = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
             }
             fps++;
@@ -69,20 +87,25 @@ int main()
             }
 
             absdiff(imgGray, imgMovimiento, imgResta);
-            
+            imgMovimientoClahe = detectarZonas(imgResta, &area);
+
             clahe -> apply(imgGray, imgGrayClahe);
-            clahe -> apply(imgMovimiento, imgMovimientoClahe);
+            // clahe -> apply(imgMovimientoClahe, imgMovimientoClahe);
             absdiff(imgGrayClahe, imgMovimientoClahe, imgRestaClahe);
 
             imgMovimiento = imgGray.clone();
 
+
             cvtColor(imgResta, imgResta, COLOR_GRAY2BGR);
             cvtColor(imgRestaClahe, imgRestaClahe, COLOR_GRAY2BGR);
 
+            string Sarea = "Area: " + to_string(area);
             auto t_fin = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
-            putText(imgOriginal,S_fps,Point(40,40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
-            putText(imgOriginal,"Img Original",Point(40,imgOriginal.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
-            putText(imgResta,"Resta Movimiento",Point(40,imgResta.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
+            putText(imgOriginal,S_fps,Point(40,40),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
+            putText(imgOriginal,Sarea,Point(40,100),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
+            putText(imgOriginal,"Original",Point(40,imgOriginal.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
+            putText(imgResta,"Resta Movimiento",Point(40,imgResta.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(0,0,255),2);
+            putText(imgRestaClahe,"Img Clahe",Point(40,imgRestaClahe.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
 
             vector<Mat> imgs_concat = { imgOriginal, imgResta,imgRestaClahe};
             cv::hconcat(imgs_concat, imgConcatenadas);
@@ -92,6 +115,7 @@ int main()
                 S_fps = "Fps: " + to_string(fps);
                 fps = 0;
             }
+
             imshow("videos", imgConcatenadas);
 
 

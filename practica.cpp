@@ -27,18 +27,20 @@ using namespace cv;
 using namespace std;
 using namespace std::chrono;
 
+// Mat imgGrayClahe;
+// Mat imgMovimientoClahe;
+// Mat imgClahe;
+// Mat restaBlanco;
 Mat imgOriginal;
-Mat imgResta;
-Mat imgClahe;
-Mat imgConcatenadas;
-Mat imgGrayClahe;
-Mat imgMovimientoClahe;
-Mat imgRestaClahe;
 Mat imgGray;
-Mat restaBlanco;
+Mat imgResta;
+Mat imgRestaClahe;
+Mat imgEqu;
+Mat imgConcatenadas;
 string S_fps;
 int fps = 0;
 int area = 0;
+
 Mat detectarZonas(Mat img, int *area){
     Mat zonas = Mat::zeros(img.size(), CV_8UC1);
     int pixel = 0;
@@ -67,6 +69,7 @@ int main()
         Ptr<CLAHE> clahe = createCLAHE();
 
         namedWindow("videos", WINDOW_AUTOSIZE);
+        // namedWindow("Eq", WINDOW_AUTOSIZE);
 
         while (3 == 3)
         {
@@ -87,29 +90,43 @@ int main()
             }
 
             absdiff(imgGray, imgMovimiento, imgResta);
-            imgMovimientoClahe = detectarZonas(imgResta, &area);
+            imgRestaClahe = detectarZonas(imgResta, &area);
+            
+            clahe -> apply(imgRestaClahe, imgRestaClahe);
+            
+            
 
-            clahe -> apply(imgGray, imgGrayClahe);
-            // clahe -> apply(imgMovimientoClahe, imgMovimientoClahe);
-            absdiff(imgGrayClahe, imgMovimientoClahe, imgRestaClahe);
+            equalizeHist(imgGray, imgEqu);
+            absdiff(imgEqu, imgMovimiento, imgEqu);
+
+            // clahe -> apply(imgGray, imgGrayClahe);
+            // clahe -> apply(imgMovimiento, imgMovimientoClahe);
+            // // clahe -> apply(imgMovimientoClahe, imgMovimientoClahe);
+            // absdiff(imgGrayClahe, imgMovimientoClahe, imgRestaClahe);
+            // imgRestaClahe = detectarZonas(imgRestaClahe, &area);
+            string Sarea = "Area: " + to_string(area);
+
+
 
             imgMovimiento = imgGray.clone();
 
 
             cvtColor(imgResta, imgResta, COLOR_GRAY2BGR);
             cvtColor(imgRestaClahe, imgRestaClahe, COLOR_GRAY2BGR);
+            cvtColor(imgEqu, imgEqu, COLOR_GRAY2BGR);
 
-            string Sarea = "Area: " + to_string(area);
             auto t_fin = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
             putText(imgOriginal,S_fps,Point(40,40),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
             putText(imgOriginal,Sarea,Point(40,100),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
             putText(imgOriginal,"Original",Point(40,imgOriginal.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
             putText(imgResta,"Resta Movimiento",Point(40,imgResta.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(0,0,255),2);
             putText(imgRestaClahe,"Img Clahe",Point(40,imgRestaClahe.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
+            putText(imgEqu,"Img Equalizada",Point(40,imgEqu.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
 
-            vector<Mat> imgs_concat = { imgOriginal, imgResta,imgRestaClahe};
+            vector<Mat> imgs_concat = { imgOriginal, imgResta, imgEqu};
             cv::hconcat(imgs_concat, imgConcatenadas);
-
+            // vector<Mat> img_con_ver = { imgConcatenadas, imgEqu};
+            // cv::vconcat(img_con_ver, imgConcatenadas);
 
             if((t_fin - t_init) >= 1){
                 S_fps = "Fps: " + to_string(fps);
@@ -117,10 +134,9 @@ int main()
             }
 
             imshow("videos", imgConcatenadas);
-
+            // imshow("Eq", imgEqu);
 
             if (waitKey(23) == 27)
-
             {
                 break;
             }

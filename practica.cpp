@@ -27,16 +27,22 @@ using namespace cv;
 using namespace std;
 using namespace std::chrono;
 
-// Mat imgGrayClahe;
-// Mat imgMovimientoClahe;
-// Mat imgClahe;
-// Mat restaBlanco;
 Mat imgOriginal;
+Mat imgOriginalClahe;
+Mat imgOriginalEqu;
 Mat imgGray;
+Mat imgGrayClahe;
+Mat imgGrayEqu;
 Mat imgResta;
+Mat imgRestaNegada;
 Mat imgRestaClahe;
-Mat imgEqu;
+Mat imgRestaEqu;
+
 Mat imgConcatenadas;
+Mat imgConcatenadas2;
+
+Mat imgFiltro;
+Mat imgFiltroResta;
 string S_fps;
 int fps = 0;
 int area = 0;
@@ -66,10 +72,13 @@ int main()
     if (video.isOpened())
     {
         Mat imgMovimiento;
+        Mat imgMovimientoClahe;
+        Mat imgMovimientoEqu;
+        Mat imgMovimientoFiltro;
         Ptr<CLAHE> clahe = createCLAHE();
 
         namedWindow("videos", WINDOW_AUTOSIZE);
-        // namedWindow("Eq", WINDOW_AUTOSIZE);
+        // namedWindow("filtro", WINDOW_AUTOSIZE);
 
         while (3 == 3)
         {
@@ -77,64 +86,84 @@ int main()
                 t_init = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
             }
             fps++;
-
+           
             video >> imgOriginal;
-
             flip(imgOriginal, imgOriginal, 1);
 
+            imgOriginalClahe = imgOriginal;
+
+            imgOriginalEqu = imgOriginal;
+
             cvtColor(imgOriginal, imgGray, COLOR_BGR2GRAY);
+            
+            cvtColor(imgOriginalClahe, imgGrayClahe, COLOR_BGR2GRAY);
+            clahe -> apply(imgGrayClahe, imgGrayClahe);
+
+            cvtColor(imgOriginalEqu, imgGrayEqu, COLOR_BGR2GRAY);
+            equalizeHist(imgGrayEqu, imgGrayEqu);
+            
+            cv::bilateralFilter(imgOriginal, imgFiltro, 30,100, 10);
+            cvtColor(imgFiltro, imgFiltro, COLOR_BGR2GRAY);
+            // clahe ->apply(imgFiltro, imgFiltro);
 
             if (imgMovimiento.empty())
             {
                 imgMovimiento = imgGray.clone();
+                imgMovimientoClahe = imgGrayClahe.clone();
+                imgMovimientoEqu = imgGrayEqu.clone();
+                imgMovimientoFiltro = imgFiltro.clone();
             }
 
             absdiff(imgGray, imgMovimiento, imgResta);
-            imgRestaClahe = detectarZonas(imgResta, &area);
+            imgRestaNegada = detectarZonas(imgResta, &area);
             
-            clahe -> apply(imgRestaClahe, imgRestaClahe);
-            
-            
+            absdiff(imgGrayClahe, imgMovimientoClahe, imgRestaClahe);
 
-            equalizeHist(imgGray, imgEqu);
-            absdiff(imgEqu, imgMovimiento, imgEqu);
+            absdiff(imgGrayEqu, imgMovimientoEqu, imgRestaEqu);
 
-            // clahe -> apply(imgGray, imgGrayClahe);
-            // clahe -> apply(imgMovimiento, imgMovimientoClahe);
-            // // clahe -> apply(imgMovimientoClahe, imgMovimientoClahe);
-            // absdiff(imgGrayClahe, imgMovimientoClahe, imgRestaClahe);
-            // imgRestaClahe = detectarZonas(imgRestaClahe, &area);
+            absdiff(imgFiltro, imgMovimientoFiltro, imgFiltroResta);
+            int areaF = 0;
+            imgFiltroResta = detectarZonas(imgFiltroResta, &areaF);
+            // cv::bilateralFilter(imgRestaClahe,imgFiltro, 3, 40,40);
+
             string Sarea = "Area: " + to_string(area);
 
-
-
             imgMovimiento = imgGray.clone();
-
+            imgMovimientoClahe = imgGrayClahe.clone();
+            imgMovimientoEqu = imgGrayEqu.clone();
+            imgMovimientoFiltro = imgFiltro.clone();
 
             cvtColor(imgResta, imgResta, COLOR_GRAY2BGR);
             cvtColor(imgRestaClahe, imgRestaClahe, COLOR_GRAY2BGR);
-            cvtColor(imgEqu, imgEqu, COLOR_GRAY2BGR);
+            cvtColor(imgRestaEqu, imgRestaEqu, COLOR_GRAY2BGR);
+            cvtColor(imgRestaNegada, imgRestaNegada, COLOR_GRAY2BGR);
+            cvtColor(imgGray, imgGray, COLOR_GRAY2BGR);
+            cvtColor(imgFiltroResta, imgFiltroResta, COLOR_GRAY2BGR);
 
             auto t_fin = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
             putText(imgOriginal,S_fps,Point(40,40),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
             putText(imgOriginal,Sarea,Point(40,100),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
             putText(imgOriginal,"Original",Point(40,imgOriginal.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);
             putText(imgResta,"Resta Movimiento",Point(40,imgResta.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(0,0,255),2);
+            putText(imgFiltroResta,"Resta Negada con Filtro",Point(40,imgResta.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(0,0,255),2);
+            putText(imgRestaNegada,"Resta Negada",Point(40,imgResta.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(0,0,255),2);
             putText(imgRestaClahe,"Img Clahe",Point(40,imgRestaClahe.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
-            putText(imgEqu,"Img Equalizada",Point(40,imgEqu.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
+            putText(imgRestaEqu,"Img Equalizada",Point(40,imgRestaEqu.rows-40),FONT_HERSHEY_PLAIN,2,Scalar(255,255,0),2);
 
-            vector<Mat> imgs_concat = { imgOriginal, imgResta, imgEqu};
+            vector<Mat> imgs_concat = { imgOriginal, imgRestaNegada, imgFiltroResta };
             cv::hconcat(imgs_concat, imgConcatenadas);
-            // vector<Mat> img_con_ver = { imgConcatenadas, imgEqu};
-            // cv::vconcat(img_con_ver, imgConcatenadas);
+            vector<Mat> imgs_concat_b = {imgResta, imgRestaClahe, imgRestaEqu };
+            cv::hconcat(imgs_concat_b, imgConcatenadas2);
+            vector<Mat> vertical = { imgConcatenadas, imgConcatenadas2};
+            cv::vconcat(vertical, imgConcatenadas2);
 
             if((t_fin - t_init) >= 1){
                 S_fps = "Fps: " + to_string(fps);
                 fps = 0;
             }
 
-            imshow("videos", imgConcatenadas);
-            // imshow("Eq", imgEqu);
+            imshow("videos", imgConcatenadas2);
+            // imshow("filtro", imgFiltroResta);
 
             if (waitKey(23) == 27)
             {

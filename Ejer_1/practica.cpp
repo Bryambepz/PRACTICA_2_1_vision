@@ -102,9 +102,9 @@ int main()
             cvtColor(imgOriginalEqu, imgGrayEqu, COLOR_BGR2GRAY);
             equalizeHist(imgGrayEqu, imgGrayEqu);
             
-            cv::bilateralFilter(imgOriginal, imgFiltro, 30,100, 10);
+            cv::bilateralFilter(imgOriginal, imgFiltro, 15,100, 100);
             cvtColor(imgFiltro, imgFiltro, COLOR_BGR2GRAY);
-            // clahe ->apply(imgFiltro, imgFiltro);
+            clahe ->apply(imgFiltro, imgFiltro);
 
             if (imgMovimiento.empty())
             {
@@ -123,8 +123,8 @@ int main()
 
             absdiff(imgFiltro, imgMovimientoFiltro, imgFiltroResta);
             int areaF = 0;
-            imgFiltroResta = detectarZonas(imgFiltroResta, &areaF);
-            // cv::bilateralFilter(imgRestaClahe,imgFiltro, 3, 40,40);
+
+            // imgFiltroResta = detectarZonas(imgFiltroResta, &areaF);
 
             string Sarea = "Area: " + to_string(area);
 
@@ -133,12 +133,12 @@ int main()
             imgMovimientoEqu = imgGrayEqu.clone();
             imgMovimientoFiltro = imgFiltro.clone();
 
-            cvtColor(imgResta, imgResta, COLOR_GRAY2BGR);
-            cvtColor(imgRestaClahe, imgRestaClahe, COLOR_GRAY2BGR);
-            cvtColor(imgRestaEqu, imgRestaEqu, COLOR_GRAY2BGR);
-            cvtColor(imgRestaNegada, imgRestaNegada, COLOR_GRAY2BGR);
-            cvtColor(imgGray, imgGray, COLOR_GRAY2BGR);
-            cvtColor(imgFiltroResta, imgFiltroResta, COLOR_GRAY2BGR);
+            cv::cvtColor(imgResta, imgResta, COLOR_GRAY2BGR);
+            cv::cvtColor(imgRestaClahe, imgRestaClahe, COLOR_GRAY2BGR);
+            cv::cvtColor(imgRestaEqu, imgRestaEqu, COLOR_GRAY2BGR);
+            cv::cvtColor(imgRestaNegada, imgRestaNegada, COLOR_GRAY2BGR);
+            cv::cvtColor(imgGray, imgGray, COLOR_GRAY2BGR);
+            cv::cvtColor(imgFiltroResta, imgFiltroResta, COLOR_GRAY2BGR);
 
             auto t_fin = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
             putText(imgOriginal,S_fps,Point(40,40),FONT_HERSHEY_PLAIN,2,Scalar(255,0,0),2);

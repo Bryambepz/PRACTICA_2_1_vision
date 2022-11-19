@@ -1,3 +1,0 @@
-/home/bryepz/Documents/VISION/PRACTICA_2_1/CMakeFiles/rebuild_cache.dir
-/home/bryepz/Documents/VISION/PRACTICA_2_1/CMakeFiles/edit_cache.dir
-/home/bryepz/Documents/VISION/PRACTICA_2_1/CMakeFiles/practica.dir

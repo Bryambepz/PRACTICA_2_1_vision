@@ -1,0 +1,3 @@
+/home/bryepz/Documents/VISION/PRACTICA_2_1/Ejer_3/CMakeFiles/rebuild_cache.dir
+/home/bryepz/Documents/VISION/PRACTICA_2_1/Ejer_3/CMakeFiles/edit_cache.dir
+/home/bryepz/Documents/VISION/PRACTICA_2_1/Ejer_3/CMakeFiles/practica3.dir

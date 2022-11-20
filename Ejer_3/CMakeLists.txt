@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project( practica3 )
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+add_executable( practica3 practica3.cpp )
+target_link_libraries( practica3 ${OpenCV_LIBS} )

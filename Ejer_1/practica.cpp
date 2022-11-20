@@ -104,7 +104,7 @@ int main()
             
             cv::bilateralFilter(imgOriginal, imgFiltro, 15,100, 100);
             cvtColor(imgFiltro, imgFiltro, COLOR_BGR2GRAY);
-            clahe ->apply(imgFiltro, imgFiltro);
+            // clahe ->apply(imgFiltro, imgFiltro);
 
             if (imgMovimiento.empty())
             {
@@ -124,7 +124,7 @@ int main()
             absdiff(imgFiltro, imgMovimientoFiltro, imgFiltroResta);
             int areaF = 0;
 
-            // imgFiltroResta = detectarZonas(imgFiltroResta, &areaF);
+            imgFiltroResta = detectarZonas(imgFiltroResta, &areaF);
 
             string Sarea = "Area: " + to_string(area);
 
